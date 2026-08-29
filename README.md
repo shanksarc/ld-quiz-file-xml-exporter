@@ -1,4 +1,4 @@
-# LearnDash XML Question Importer & Quiz Generator
+# LD Quiz File XML Exporter
 
 A standalone, browser-based quiz question importer and XML generator for WordPress **LearnDash LMS** (and **WP Pro Quiz**). Operates 100% locally and offline without requiring WordPress plugins, database access, or server dependencies.
 
@@ -48,6 +48,17 @@ Run the full 20-point test suite:
 ```bash
 py tests/runTests.py
 ```
+
+---
+
+## 🔄 Sync with GitHub
+
+To push your latest local changes directly to GitHub:
+```bash
+py scripts/sync_github.py
+```
+
+GitHub Repository: [https://github.com/shanksarc/ld-quiz-file-xml-exporter](https://github.com/shanksarc/ld-quiz-file-xml-exporter)
 
 ---
 
