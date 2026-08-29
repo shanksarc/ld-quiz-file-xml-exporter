@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LearnDash XML Question Importer | Standalone Generator</title>
+  <meta name="description" content="Standalone LearnDash and WP Pro Quiz Question Importer and XML Generator with full template preservation, deterministic parsing, and round-trip validation.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css?v=2.3">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>LearnDash XML Generator</h1>
+          <span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+            100% Production Isolated &bull; Local-First
+          </span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadBackup" title="Download backup copy of loaded XML template">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Backup Template
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stepper Progress Bar -->
+  <nav class="stepper-nav" aria-label="Workflow Stages">
+    <ol class="stepper-list">
+      <li class="step-item active" data-stage="1">
+        <div class="step-number">1</div>
+        <div class="step-title">Template</div>
+      </li>
+      <li class="step-item" data-stage="2">
+        <div class="step-number">2</div>
+        <div class="step-title">Questions</div>
+      </li>
+      <li class="step-item" data-stage="3">
+        <div class="step-number">3</div>
+        <div class="step-title">Review & Edit</div>
+      </li>
+      <li class="step-item" data-stage="4">
+        <div class="step-number">4</div>
+        <div class="step-title">Export & Verify</div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Main Application Body -->
+  <main class="app-main">
+
+    <!-- STAGE 1: TEMPLATE SELECTION & INSPECTION -->
+    <section id="stage1" class="stage-section active">
+      <div class="grid-2col">
+        <!-- Choose Template Card -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">1. Choose LearnDash XML Template</h2>
+              <p class="card-subtitle">Upload an existing LearnDash quiz export to preserve settings, or use reference default.</p>
+            </div>
+          </div>
+
+          <div class="dropzone" id="templateDropzone">
+            <div class="dropzone-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="dropzone-title">Upload Existing LearnDash XML</div>
+            <div class="dropzone-desc">Drag & drop your <code>.xml</code> export here, or click to browse</div>
+            <input type="file" id="templateFileInput" accept=".xml" style="display: none;">
+          </div>
+
+          <div style="margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnUseRefTemplate">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
+              Reload Reference Template
+            </button>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <label class="form-label">Questions Import Mode</label>
+            <div class="radio-card-group">
+              <label class="radio-card">
+                <input type="radio" name="handlingMode" value="replace" checked>
+                <div class="radio-card-text">
+                  <strong>Use new questions only (Recommended)</strong>
+                  <span>The XML template provides quiz settings & metadata; only your new questions will be imported.</span>
+                </div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="handlingMode" value="append">
+                <div class="radio-card-text">
+                  <strong>Keep template questions & append new questions</strong>
+                  <span>Appends your new questions to the end of the template's existing question bank.</span>
+                </div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="handlingMode" value="insert">
+                <div class="radio-card-text">
+                  <strong>Insert new questions at selected position</strong>
+                  <span>Inserts new questions starting at a specific question number index.</span>
+                </div>
+              </label>
+            </div>
+
+            <div id="insertPosGroup" class="form-group" style="display: none; margin-top: 1rem;">
+              <label class="form-label">Insert Position (Question #)</label>
+              <input type="number" id="insertPositionInput" class="form-control" value="1" min="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Template Inspection Card -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Template Inspection</h2>
+              <p class="card-subtitle">Parsed settings extracted from the active XML template.</p>
+            </div>
+            <span class="badge badge-success">Template Loaded ✓</span>
+          </div>
+
+          <table class="settings-table">
+            <tbody>
+              <tr>
+                <td>Quiz Title:</td>
+                <td id="inspectQuizTitle">Loading...</td>
+              </tr>
+              <tr>
+                <td>Existing Questions:</td>
+                <td id="inspectQuestionCount">Loading...</td>
+              </tr>
+              <tr>
+                <td>Time Limit:</td>
+                <td id="inspectTimeLimit">Loading...</td>
+              </tr>
+              <tr>
+                <td>Questions Per Page:</td>
+                <td id="inspectQPerPage">Loading...</td>
+              </tr>
+              <tr>
+                <td>Show Points:</td>
+                <td id="inspectShowPoints">Loading...</td>
+              </tr>
+              <tr>
+                <td>Randomize Questions:</td>
+                <td id="inspectQRandom">Loading...</td>
+              </tr>
+              <tr>
+                <td>Randomize Answers:</td>
+                <td id="inspectARandom">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+            <div class="form-group">
+              <label class="form-label">Edit Quiz Title (Optional)</label>
+              <input type="text" id="editQuizTitle" class="form-control" placeholder="Quiz Title...">
+            </div>
+
+            <button type="button" class="btn btn-primary btn-lg" id="btnStage1Next" style="width: 100%; margin-top: 0.5rem;">
+              Proceed to Add Questions &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 2: ADD NEW QUESTIONS -->
+    <section id="stage2" class="stage-section">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">2. Add New Questions</h2>
+            <p class="card-subtitle">Paste questions using structured tags (e.g. <code>[question]</code>, <code>[answer: B]</code>) or standard <code>Q1.</code> format.</p>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleSyntaxRef">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Tag Syntax Reference
+          </button>
+        </div>
+
+        <!-- Syntax Reference Cheat Sheet Box -->
+        <div class="tag-reference-box" id="tagReferenceBox">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+            <strong>Structured Question Formatting Cheat Sheet</strong>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">Both Tagged and Natural formats are automatically supported</span>
+          </div>
+          <div class="tag-ref-grid">
+            <div class="tag-ref-card">
+              <div class="tag-ref-title">
+                <span class="badge badge-info">Option A: Structured Tags (Recommended)</span>
+              </div>
+              <div class="tag-ref-code">[question]
+[id: F2B1MQ02CSD]
+[points: 1]
+What is the parametric VaR for $10M at 95%?
+
+[A] $1.2 million
+[B] $1.5 million
+[C] $1.8 million
+[D] $2.0 million
+
+[answer: B]
+
+[explanation]
+Formula: VaR = Portfolio &times; (Z &times; SD - Mean)
+[/question]</div>
+            </div>
+
+            <div class="tag-ref-card">
+              <div class="tag-ref-title">
+                <span class="badge badge-success">Option B: Standard Format</span>
+              </div>
+              <div class="tag-ref-code">Q1. What is the parametric VaR for $10M at 95%?
+
+A) $1.2 million
+B) $1.5 million
+C) $1.8 million
+D) $2.0 million
+
+Answer: B
+
+Explanation: 
+Formula: VaR = Portfolio &times; (Z &times; SD - Mean)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs-container">
+          <button type="button" class="tab-btn active" data-tab="tabPaste">Method A &bull; Paste Questions</button>
+          <button type="button" class="tab-btn" data-tab="tabDocx">Method B &bull; Upload Word (.docx)</button>
+        </div>
+
+        <!-- Tab A: Paste Questions -->
+        <div id="tabPaste" class="tab-content" style="display: block;">
+          
+          <!-- Tag Insertion Toolbar -->
+          <div class="tag-helper-toolbar">
+            <div class="tag-chips-group">
+              <span class="tag-chip-label">Quick Tags:</span>
+              <span class="tag-chip" data-insert="[question]&#10;">+ [question]</span>
+              <span class="tag-chip" data-insert="[id: Q001]&#10;">+ [id]</span>
+              <span class="tag-chip" data-insert="[A] &#10;[B] &#10;[C] &#10;[D] &#10;">+ [A] [B] [C] [D]</span>
+              <span class="tag-chip" data-insert="[answer: B]&#10;">+ [answer: B]</span>
+              <span class="tag-chip" data-insert="[explanation]&#10;">+ [explanation]</span>
+              <span class="tag-chip" data-insert="[points: 1]&#10;">+ [points: 1]</span>
+              <span class="tag-chip" data-insert="[/question]&#10;">+ [/question]</span>
+            </div>
+
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button type="button" class="tag-chip chip-action" id="btnFormatToTags" title="Auto-converts plain text into structured [question] tags">
+                🪄 Format into [question] Tags
+              </button>
+              <button type="button" class="tag-chip chip-action" id="btnLoadTaggedSample">
+                Sample Tagged
+              </button>
+              <button type="button" class="tag-chip chip-action" id="btnLoadSample">
+                Sample Natural
+              </button>
+              <button type="button" class="tag-chip" id="btnClearPaste" style="color: var(--color-error); border-color: var(--color-error-border);">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <textarea id="pasteTextarea" class="form-control textarea-mono" rows="14" placeholder="Paste or type your questions here...
+
+Format with Structured Tags:
+[question]
+[id: F2B1MQ02CSD]
+A portfolio manager enters into a futures contract...
+
+[A] Option A text
+[B] Option B text
+[C] Option C text
+[D] Option D text
+
+[answer: B]
+
+[explanation]
+Detailed explanation text...
+[/question]
+
+OR standard format:
+Q1. Question text here...
+A) Option A
+B) Option B
+Answer: B
+Explanation: ..."></textarea>
+
+          <!-- Real-Time Parse Status Bar -->
+          <div class="live-parse-bar" id="liveParseBar">
+            <div class="live-parse-left">
+              <span style="font-weight: 600;">Live Parser:</span>
+              <span class="live-parse-chip badge-info" id="liveParseCount">0 Questions detected</span>
+              <span class="live-parse-chip badge-success" id="liveParseValid" style="display: none;">0 Valid</span>
+              <span class="live-parse-chip badge-error" id="liveParseErrors" style="display: none;">0 Need Attention</span>
+            </div>
+            <div id="liveParseTips" style="color: var(--text-secondary); font-size: 0.78rem;">
+              Type or paste questions above to see live parsing feedback.
+            </div>
+          </div>
+
+          <!-- Question ID Numbering Configuration Bar -->
+          <div class="card" style="margin-top: 1rem; margin-bottom: 1rem; padding: 1rem 1.25rem; background: var(--bg-card); border-color: var(--border-card);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <strong style="font-size: 0.9rem; color: var(--text-highlight);">Question ID Numbering Pattern:</strong>
+                <span style="font-size: 0.78rem; color: var(--text-secondary); margin-left: 0.5rem;">Combine Prefix + Middle Sequence Number + Suffix</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Mode:</label>
+                <select id="selectIdMode" class="form-control" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                  <option value="custom" selected>Custom Sequence (Prefix + # + Suffix)</option>
+                  <option value="preserve">Preserve supplied IDs in text</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="customIdFieldsRow" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 120px;">
+                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Prefix</label>
+                <input type="text" id="idCustomPrefix" class="form-control" value="F2B1MQ" placeholder="e.g. F2B1MQ or Q">
+              </div>
+              <div style="width: 85px;">
+                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Start #</label>
+                <input type="number" id="idCustomStart" class="form-control" value="1" min="1">
+              </div>
+              <div style="width: 150px;">
+                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Middle # Digits</label>
+                <select id="idCustomPadding" class="form-control">
+                  <option value="3" selected>3 Digits (001, 002...)</option>
+                  <option value="2">2 Digits (01, 02...)</option>
+                  <option value="4">4 Digits (0001...)</option>
+                  <option value="1">No Padding (1, 2...)</option>
+                </select>
+              </div>
+              <div style="flex: 1; min-width: 110px;">
+                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Suffix</label>
+                <input type="text" id="idCustomSuffix" class="form-control" value="CSD" placeholder="e.g. CSD or leave empty">
+              </div>
+              <div style="align-self: flex-end; padding-bottom: 0.2rem;">
+                <span class="badge badge-info" id="idPreviewBadge" style="padding: 0.45rem 0.75rem; font-family: var(--font-mono); font-size: 0.8rem;">
+                  ID Preview: F2B1MQ001CSD
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-primary btn-lg" id="btnParsePaste">
+              Parse Questions &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab B: DOCX Upload -->
+        <div id="tabDocx" class="tab-content" style="display: none;">
+          <div class="dropzone" id="docxDropzone">
+            <div class="dropzone-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="dropzone-title">Upload Word Document (.docx)</div>
+            <div class="dropzone-desc">Drag & drop your <code>.docx</code> file here, or click to browse. Formatted paragraphs, bold, sub/superscript are extracted offline.</div>
+            <input type="file" id="docxFileInput" accept=".docx" style="display: none;">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 3: REVIEW & EDITING -->
+    <section id="stage3" class="stage-section">
+      <!-- Validation Summary Statistics Banner -->
+      <div class="val-summary-banner">
+        <div class="val-stats">
+          <div class="val-stat-box">
+            <span class="val-stat-num" id="statTotalQuestions" style="color: var(--text-highlight);">0</span>
+            <span class="val-stat-label">Total Questions</span>
+          </div>
+          <div class="val-stat-box">
+            <span class="val-stat-num" id="statValidQuestions" style="color: var(--color-success);">0</span>
+            <span class="val-stat-label">Valid ✓</span>
+          </div>
+          <div class="val-stat-box">
+            <span class="val-stat-num" id="statWarningQuestions" style="color: var(--color-warning);">0</span>
+            <span class="val-stat-label">Warnings ⚠</span>
+          </div>
+          <div class="val-stat-box">
+            <span class="val-stat-num" id="statErrorQuestions" style="color: var(--color-error);">0</span>
+            <span class="val-stat-label">Errors ✕</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <button type="button" class="btn btn-secondary" id="btnAddNewQuestion">+ Add Question</button>
+          <button type="button" class="btn btn-primary btn-lg" id="btnStage3Next">
+            Proceed to Export &rarr;
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Jump Dropdown / Quick Links -->
+      <div class="error-jump-bar" id="errorJumpBar" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-error); font-weight: 600; font-size: 0.85rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Requires Attention:
+        </div>
+        <div class="error-jump-list" id="errorJumpList"></div>
+      </div>
+
+      <!-- Batch Renumbering Toolbar Panel (Collapsible) -->
+      <div class="card" id="batchRenumberPanel" style="display: none; padding: 1rem 1.25rem; background: var(--bg-card); border: 1px solid var(--accent-primary);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <strong style="font-size: 0.9rem; color: #a5b4fc;">🔢 Batch Re-number Question IDs</strong>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnCloseRenumberPanel">✕ Close</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 120px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Prefix</label>
+            <input type="text" id="batchPrefix" class="form-control" value="F2B1MQ">
+          </div>
+          <div style="width: 85px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Start #</label>
+            <input type="number" id="batchStart" class="form-control" value="1" min="1">
+          </div>
+          <div style="width: 150px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Middle # Digits</label>
+            <select id="batchPadding" class="form-control">
+              <option value="3" selected>3 Digits (001, 002...)</option>
+              <option value="2">2 Digits (01, 02...)</option>
+              <option value="4">4 Digits (0001...)</option>
+              <option value="1">No Padding (1, 2...)</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 110px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Suffix</label>
+            <input type="text" id="batchSuffix" class="form-control" value="CSD">
+          </div>
+          <div style="align-self: flex-end;">
+            <button type="button" class="btn btn-primary" id="btnApplyBatchRenumber">
+              Apply to All Questions
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Toolbar -->
+      <div class="review-toolbar">
+        <div class="tabs-container" style="margin: 0; border: none;">
+          <button type="button" class="tab-btn filter-btn active" data-filter="all">All</button>
+          <button type="button" class="tab-btn filter-btn" data-filter="errors">Errors</button>
+          <button type="button" class="tab-btn filter-btn" data-filter="warnings">Warnings</button>
+          <button type="button" class="tab-btn filter-btn" data-filter="valid">Valid</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="search-box">
+            <span class="search-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" id="searchQuestionsInput" class="form-control" placeholder="Search questions...">
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleRenumberPanel" title="Configure prefix, padding digits, and suffix for all IDs">
+            🔢 Re-number IDs
+          </button>
+        </div>
+      </div>
+
+      <!-- Questions Cards List Container -->
+      <div id="questionsListContainer"></div>
+    </section>
+
+    <!-- STAGE 4: EXPORT & ROUND-TRIP VERIFICATION -->
+    <section id="stage4" class="stage-section">
+      <div class="grid-2col">
+        <!-- Export Summary Card -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">4. Export Summary & Verification</h2>
+              <p class="card-subtitle">Final verification before LearnDash XML generation.</p>
+            </div>
+            <span class="badge badge-success" id="exportPerfBadge">⚡ Ready (Instant)</span>
+          </div>
+
+          <table class="settings-table">
+            <tbody>
+              <tr>
+                <td>Quiz:</td>
+                <td id="exportQuizTitle">Quiz Title</td>
+              </tr>
+              <tr>
+                <td>Total Questions:</td>
+                <td id="exportTotalQuestions">0</td>
+              </tr>
+              <tr>
+                <td>Preserved from Template:</td>
+                <td id="exportExistingCount">0</td>
+              </tr>
+              <tr>
+                <td>New Imported Questions:</td>
+                <td id="exportNewCount">0</td>
+              </tr>
+              <tr>
+                <td>Validation Errors:</td>
+                <td id="exportErrorCount">0</td>
+              </tr>
+              <tr>
+                <td>Validation Warnings:</td>
+                <td id="exportWarningCount">0</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ul class="check-list">
+            <li class="check-item">
+              <div class="check-icon pass" id="checkTemplateSettings">✓</div>
+              <span>Template Settings & Post Metadata Preserved</span>
+            </li>
+            <li class="check-item">
+              <div class="check-icon pass" id="checkXmlSchema">✓</div>
+              <span>LearnDash XML Schema Structure Valid</span>
+            </li>
+            <li class="check-item">
+              <div class="check-icon pass" id="checkSingleChoice">✓</div>
+              <span>Single-Choice Correctness Verified (1 Answer Per Question)</span>
+            </li>
+            <li class="check-item">
+              <div class="check-icon pass" id="checkRoundTrip">✓</div>
+              <span>Round-Trip Parser Verification Passed</span>
+            </li>
+          </ul>
+
+          <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <button type="button" class="btn btn-success btn-lg" id="btnDownloadXml">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download LearnDash XML
+            </button>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); text-align: center;">
+              Upload this XML in WordPress via <strong>LearnDash LMS &rarr; Quizzes &rarr; Import/Export</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- XML Code Inspector Card -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Generated XML Preview</h2>
+              <p class="card-subtitle">Inspection view of the output XML structure with CDATA blocks.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFullXml">
+                Show Full XML
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnCopyXml">
+                Copy XML
+              </button>
+            </div>
+          </div>
+
+          <pre class="xml-code-viewer" id="xmlPreviewViewer">&lt;!-- XML output will appear here --&gt;</pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>Standalone LearnDash XML Question Importer &bull; Operates 100% offline & locally outside WordPress.</p>
+  </footer>
+
+  <!-- Toast Alert Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Vendor Scripts -->
+  <script src="vendor/mammoth.browser.min.js"></script>
+
+  <!-- Main ES Module Application -->
+  <script type="module" src="js/app.js?v=2.3"></script>
+</body>
+</html>
