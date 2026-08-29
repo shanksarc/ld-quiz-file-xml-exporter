@@ -188,5 +188,5 @@ export function sanitizeFilename(title) {
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
     .replace(/\s+/g, '_')
     .replace(/^_+|_+$/g, '');
-  return `LearnDash_Quiz_${clean || 'Export'}.xml`;
+  return `LD_Quiz_${clean || 'Export'}.xml`;
 }
